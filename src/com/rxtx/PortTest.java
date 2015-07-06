@@ -2,8 +2,12 @@ package com.rxtx;
 
 import java.io.BufferedOutputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Vector;
 
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
@@ -16,13 +20,16 @@ public class PortTest {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		CommPortIdentifier portIdentifier = null;
-
+		
 		Enumeration<?> allPorts = CommPortIdentifier.getPortIdentifiers();
+		Vector<String> a = new Vector<String>();
+		int i = 0;
 		while (allPorts.hasMoreElements()) {
 			portIdentifier = (CommPortIdentifier) allPorts.nextElement();
+			a.add(portIdentifier.getName().toString());
 			System.out.println("串口： " + portIdentifier.getName());
 		}
-		
+		System.out.println(Arrays.toString(a.toArray()));
 		CommPortIdentifier com1 = null;
 		CommPortIdentifier com2 = null;
 		SerialPort serialPort1 = null;
