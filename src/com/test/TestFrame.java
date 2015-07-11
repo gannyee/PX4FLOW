@@ -8,6 +8,8 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JLabel;
 import javax.swing.JComboBox;
+
+import com.mavlink.Test;
 import com.rxtx.PortReadSerial;
 import java.awt.Color;
 import java.awt.event.ActionListener;
@@ -17,6 +19,7 @@ import javax.swing.JTextField;
 import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
 import java.awt.Font;
+import java.io.IOException;
 
 /**
  * Set main windows for application
@@ -31,7 +34,7 @@ public class TestFrame {
 	private PortReadSerial prs = new PortReadSerial();
 	private ComboBoxModel model;
 	private JTextField textField_2;
-
+	private Test test;
 	// TestFrame Constructor
 	public TestFrame() {
 
@@ -150,6 +153,12 @@ public class TestFrame {
 						+ "\nDaud Rate: " + prs.getDataBites()
 						+ "\nStop Bites: " + prs.getStopBites()
 						+ "\nParity Check: " + prs.getParityCheck());
+				/*try {
+					test.testPort();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}*/
 			}
 		});
 		openPortButton.setBounds(189, 130, 93, 23);
@@ -283,13 +292,6 @@ public class TestFrame {
 						+ prs.getParityCheck());
 			}
 		});
-		/*
-		 * JLabel label = new JLabel("Flow Control: "); label.setBounds(348, 90,
-		 * 93, 25); panel2.add(label);
-		 * 
-		 * JComboBox comboBox = new JComboBox((ComboBoxModel) null);
-		 * comboBox.setBounds(451, 94, 137, 21); panel2.add(comboBox);
-		 */
 
 		// To Spite two panels: panel1 and panel2, by vertical method
 		JSplitPane splitPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT,

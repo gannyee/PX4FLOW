@@ -8,6 +8,7 @@ import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
 import gnu.io.UnsupportedCommOperationException;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -16,6 +17,9 @@ import java.util.Enumeration;
 import java.util.Observable;
 import java.util.TooManyListenersException;
 import java.util.Vector;
+
+import com.mavlink.MavlinkParser;
+import com.mavlink.Test;
 
 /**
  * Find usable port Open serial port Read data via opened port
@@ -47,116 +51,21 @@ public class PortReadSerial extends Observable implements Runnable,
 	// Output stream
 	private static OutputStream outputStream;
 	// Data buffer
-	private static byte[] readBuffer = new byte[1024];
-	//Actual bytes of readBuffer
+	private static byte[] readBuffer = new byte[2048];
+	// Actual bytes of readBuffer
 	int numBytes;
 	// Whether port is opened
 	private static boolean isOpen = false;
 
-	// Override constructor for initialing
 	// baudRate,dataBites,stopBites,parityChck
 	public PortReadSerial() {
 		this.com = "COM9";
-		this.baudRate = 9600;
+		this.baudRate = 115200;
 		this.dataBites = SerialPort.DATABITS_5;
 		this.stopBites = SerialPort.STOPBITS_1;
 		this.parityCheck = SerialPort.PARITY_EVEN;
 	}
 
-	
-	// Get all available ports
-	public String[] getAllAvailablePorts() {
-		Enumeration<?> allPorts = CommPortIdentifier.getPortIdentifiers();
-		Vector<String> a = new Vector<String>();
-		int i = 0;
-		while (allPorts.hasMoreElements()) {
-			a.add(((CommPortIdentifier) allPorts.nextElement()).getName()
-					.toString());
-		}
-		return (Arrays.toString(a.toArray()).substring(1,
-				Arrays.toString(a.toArray()).length() - 1).split(", "));
-	}
-
-	//Get port number
-	public static String getCom() {
-		return com;
-	}
-
-	//Set port number
-	public static void setCom(String com) {
-		PortReadSerial.com = com;
-	}
-
-	// Get baud rate
-	public int getBaudRate() {
-		return baudRate;
-	}
-
-	// Set baud rate
-	public void setBaudRate(int baudRate) {
-		this.baudRate = baudRate;
-	}
-
-	// Get all indicates parameters for baud rate
-	public String[] getAllBaudRateChoices() {
-		String[] allBaudRatechoices = { "9600", "4800", "12500" };
-		return allBaudRatechoices;
-	}
-
-	// Get data bits
-	public int getDataBites() {
-		return dataBites;
-	}
-
-	// Set data bits
-	public void setDataBites(int dataBites) {
-		this.dataBites = dataBites;
-	}
-
-	// Get all indicates parameters for data bites
-	public String[] getAllDateBitesChoices() {
-		String[] allDateBiteschoices = { "DATABITS_5",
-				"DATABITS_6", "DATABITS_7",
-				"DATABITS_8" };
-		return allDateBiteschoices;
-	}
-
-	// Get stop bites
-	public int getStopBites() {
-		return stopBites;
-	}
-
-	// Set stop bites
-	public void setStopBites(int stopBites) {
-		this.stopBites = stopBites;
-	}
-
-	// Get all indicates parameters for stop bites
-	public String[] getAllStopBitesChoices() {
-		String[] allStopBiteschoices = {"STOPBITS_1","STOPBITS_1_5","STOPBITS_2"};
-		return allStopBiteschoices;
-	}
-	// Get parity check
-	public int getParityCheck() {
-		return parityCheck;
-	}
-
-	public void setParityCheck(int parityCheck) {
-		this.parityCheck = parityCheck;
-	}
-
-	// Get all indicates parameters for parity check
-	public String[] getAllParityCheckChoices() {
-		String[] allParityCheckchoices = {"PARITY_EVEN","PARITY_MARK","PARITY_NONE",
-				"PARITY_ODD","PARITY_SPACE"};
-		return allParityCheckchoices;
-	}
-	
-	/*// Get all indicates parameters for flow control
-	public String[] getAllFlowControlChoices() {
-		String[] allFlowControlchoices = {"FLOWCONTROL_NONE","FLOWCONTROL_RTSCTS_IN","FLOWCONTROL_RTSCTS_OUT","FLOWCONTROL_XONXOFF_IN","FLOWCONTROL_XONXOFF_OUT"};
-		return allFlowControlchoices;
-	}*/
 	// Open port
 	public void openPortAndListen() {
 		if (isOpen) {
@@ -168,15 +77,15 @@ public class PortReadSerial extends Observable implements Runnable,
 			// Open specify port
 			serialPort = (SerialPort) portId.open(com, 1000);
 			// get data stream
+			// Configure parameters
+			serialPort.setSerialPortParams(getBaudRate(), getDataBites(),
+					getStopBites(), getParityCheck());
 			inputStream = serialPort.getInputStream();
-			//outputStream = serialPort.getOutputStream();
+			// outputStream = serialPort.getOutputStream();
 			// Add listener
 			serialPort.addEventListener(this);
 			// Listeners for available even
 			serialPort.notifyOnDataAvailable(true);
-			// Configure parameters
-			serialPort.setSerialPortParams(getBaudRate(), getDataBites(),
-					getStopBites(), getParityCheck());
 			System.out.println("Port: " + portId.getName()
 					+ ": opened successfully!");
 			isOpen = true;
@@ -208,6 +117,7 @@ public class PortReadSerial extends Observable implements Runnable,
 		// closePort();
 	}
 
+	// Close port
 	public static void closePort() {
 		if (isOpen) {
 			try {
@@ -228,7 +138,7 @@ public class PortReadSerial extends Observable implements Runnable,
 	@Override
 	public void run() {
 		try {
-			Thread.sleep(50);
+			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -250,40 +160,128 @@ public class PortReadSerial extends Observable implements Runnable,
 		case SerialPortEvent.OUTPUT_BUFFER_EMPTY:// Output buffer is empty
 			break;
 		case SerialPortEvent.DATA_AVAILABLE:// Data available at the serial port
-
-			/*byte[] readBuffer = new byte[1024];
-
-			try {
-				while (inputStream.available() > 0) {
-					int numBytes = inputStream.read(readBuffer);
-				}
-				System.out.print(new String(readBuffer));
-			} catch (IOException e) {
-			}*/
-			
-			try {
-				// Read data
-				while (inputStream.available() > 0) {
-					numBytes = inputStream.read(readBuffer);
-				}
-
-				// print the information of got data
-				for (int i = 0; i < numBytes; i++) {
-					System.out.println("msg[" + numBytes + "]: ["
-							+ readBuffer[i] + "]:" + (char) readBuffer[i]);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
 			break;
 		}
 	}
-	
-	/*
-	 * public static void main(String[] args) { PortReadSerial prs = new
-	 * PortReadSerial(); prs.openPortAndListen();
-	 * System.out.println(prs.getAllAvailablePorts()); String[] strings =
-	 * prs.getAllAvailablePorts(); for(int i = 0;i < strings.length;i ++) {
-	 * System.out.println(strings[i]); } }
-	 */
+
+	// Get all available ports
+	public String[] getAllAvailablePorts() {
+		Enumeration<?> allPorts = CommPortIdentifier.getPortIdentifiers();
+		Vector<String> a = new Vector<String>();
+		int i = 0;
+		while (allPorts.hasMoreElements()) {
+			a.add(((CommPortIdentifier) allPorts.nextElement()).getName()
+					.toString());
+		}
+		return (Arrays.toString(a.toArray()).substring(1,
+				Arrays.toString(a.toArray()).length() - 1).split(", "));
+	}
+
+	// Get port number
+	public static String getCom() {
+		return com;
+	}
+
+	// Set port number
+	public static void setCom(String com) {
+		PortReadSerial.com = com;
+	}
+
+	// Get baud rate
+	public int getBaudRate() {
+		return baudRate;
+	}
+
+	// Set baud rate
+	public void setBaudRate(int baudRate) {
+		this.baudRate = baudRate;
+	}
+
+	// Get all indicates parameters for baud rate
+	public String[] getAllBaudRateChoices() {
+		String[] allBaudRatechoices = { "9600", "4800", "115200" };
+		return allBaudRatechoices;
+	}
+
+	// Get data bits
+	public int getDataBites() {
+		return dataBites;
+	}
+
+	// Set data bits
+	public void setDataBites(int dataBites) {
+		this.dataBites = dataBites;
+	}
+
+	// Get all indicates parameters for data bites
+	public String[] getAllDateBitesChoices() {
+		String[] allDateBiteschoices = { "DATABITS_5", "DATABITS_6",
+				"DATABITS_7", "DATABITS_8" };
+		return allDateBiteschoices;
+	}
+
+	// Get stop bites
+	public int getStopBites() {
+		return stopBites;
+	}
+
+	// Set stop bites
+	public void setStopBites(int stopBites) {
+		this.stopBites = stopBites;
+	}
+
+	// Get all indicates parameters for stop bites
+	public String[] getAllStopBitesChoices() {
+		String[] allStopBiteschoices = { "STOPBITS_1", "STOPBITS_1_5",
+				"STOPBITS_2" };
+		return allStopBiteschoices;
+	}
+
+	// Get parity check
+	public int getParityCheck() {
+		return parityCheck;
+	}
+
+	public void setParityCheck(int parityCheck) {
+		this.parityCheck = parityCheck;
+	}
+
+	// Get all indicates parameters for parity check
+	public String[] getAllParityCheckChoices() {
+		String[] allParityCheckchoices = { "PARITY_EVEN", "PARITY_MARK",
+				"PARITY_NONE", "PARITY_ODD", "PARITY_SPACE" };
+		return allParityCheckchoices;
+	}
+
+	// Get inputStream;
+	public InputStream getInputStream() {
+		// System.out.println("test");
+		return inputStream;
+	}
+
+	/*public static void main(String[] args) {
+		PortReadSerial prs = new PortReadSerial();
+		prs.openPortAndListen();
+		int numBytes;
+		MavlinkParser mp = new MavlinkParser();
+		byte[] buffer = new byte[2048];
+		while (true) {
+			InputStream is = prs.getInputStream();
+			try {
+				while (is.available() > 0) {
+					numBytes = is.read(buffer);
+					//System.out.println("true");
+					mp.process(buffer);
+					//if(mp.getTargetMassager().length() != 0)
+						System.out.println(Arrays.toString(mp.getTargetMassager().getBytes()));
+				}
+				//System.out.println(Arrays.toString(buffer));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		// System.out.println(Arrays.toString(prs.getReadBuffer())); }
+
+	}*/
 }
