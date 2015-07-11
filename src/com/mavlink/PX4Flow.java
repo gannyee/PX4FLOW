@@ -7,15 +7,16 @@ import java.util.Arrays;
 import com.rxtx.PortReadSerial;
 
 public class PX4Flow extends MavlinkParser {
-
+	PortReadSerial prs = new PortReadSerial();
+	int numBytes;
+	MavlinkParser mp = new MavlinkParser();
+	byte[] buffer = new byte[2048];
+	byte[] c;
+	ByteArrayTransfer bat = new ByteArrayTransfer();
+	
+	
 	public void refresh() {
-		PortReadSerial prs = new PortReadSerial();
 		prs.openPortAndListen();
-		int numBytes;
-		MavlinkParser mp = new MavlinkParser();
-		byte[] buffer = new byte[2048];
-		byte[] c;
-		ByteArrayTransfer bat = new ByteArrayTransfer();
 		while (true) {
 			InputStream is = prs.getInputStream();
 			try {
@@ -36,6 +37,8 @@ public class PX4Flow extends MavlinkParser {
 					System.out.println(bat.byteToBaseType("float",17, 21, c));
 					System.out.println(bat.byteToBaseType("float",21, 22, c));
 					System.out.println(bat.byteToBaseType("float",22, 26, c));
+					
+					
 					}
 				}
 				// System.out.println(Arrays.toString(buffer));
