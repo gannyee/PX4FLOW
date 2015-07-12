@@ -1,5 +1,22 @@
 package com.test;
 
+import javax.swing.ComboBoxModel;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+
+import com.mavlink.ByteArrayTransfer;
+import com.mavlink.MavlinkParser;
+import com.mavlink.PX4Flow;
+import com.mavlink.Test;
+import com.rxtx.PortReadSerial;
+/**
+ * Set main windows for application
+ * 
+ * @author Yi Gan
+ * 
+ */
+
 import gnu.io.SerialPort;
 import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
@@ -14,12 +31,14 @@ import com.rxtx.PortReadSerial;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
 import java.util.Random;
 import javax.swing.JTextField;
 import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
 import java.awt.Font;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Set main windows for application
@@ -34,24 +53,26 @@ public class TestFrame {
 	private PortReadSerial prs = new PortReadSerial();
 	private ComboBoxModel model;
 	private JTextField textField_2;
-	private Test test;
+	//private PX4Flow px = new PX4Flow();
 	// TestFrame Constructor
 	public TestFrame() {
 
 		JFrame jf = new JFrame();
 		jf.setResizable(false);
-		jf.setSize(722, 429);
+		jf.setSize(804, 429);
 		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		jf.setVisible(true);
 		contePanel = new JPanel();
 		contePanel.setLayout(null);
 		jf.setContentPane(contePanel);
 
+		
+		
 		/**
 		 * panel1
 		 * 
 		 **/
-		JPanel panel1 = new JPanel();
+		final JPanel panel1 = new JPanel();
 		panel1.setLayout(null);
 
 		JLabel GrnDisLabel1 = new JLabel("5.0");
@@ -68,31 +89,34 @@ public class TestFrame {
 		panel1.add(GrndDistLabel);
 
 		final JProgressBar GroudDistanceProgressBar = new ProgressBar(180);
+		GroudDistanceProgressBar.setValue(10);
+		GroudDistanceProgressBar.setMaximum(10);
 		GroudDistanceProgressBar.setBounds(32, 10, 98, 152);
 		GroudDistanceProgressBar.setBackground(Color.BLUE);
 		GroudDistanceProgressBar.setOrientation(1);
 
 		// Create progress
-		new Thread() {
+		/*new Thread() {
 			Random a = new Random();
 
 			public void run() {
 				for (int i = 0;; i = a.nextInt(100)) {
 					try {
+						// Set the process number
+						GroudDistanceProgressBar.setValue(i);
 						// sleep process 0.1ms
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
 						// TODO: handle exception
 						e.printStackTrace();
 					}
-					// Set the process number
-					GroudDistanceProgressBar.setValue(i);
+					
 				}
 
 			}
 			// Start process
-		}.start();
-		panel1.add(GroudDistanceProgressBar);
+		}.start();*/
+		//panel1.add(GroudDistanceProgressBar);
 
 		// Change process bar direction
 		JLabel QualityLabel1 = new JLabel("255");
@@ -108,36 +132,19 @@ public class TestFrame {
 		QualityLabel.setBounds(222, 180, 52, 15);
 		panel1.add(QualityLabel);
 		final ProgressBar QualityProgressBar = new ProgressBar(180);
+		QualityProgressBar.setValue(100);
 		QualityProgressBar.setOrientation(SwingConstants.VERTICAL);
 		QualityProgressBar.setBounds(193, 10, 98, 152);
 		QualityProgressBar.setBackground(Color.YELLOW);
 		QualityProgressBar.setOrientation(1);
-
-		// Create Process
-		new Thread() {
-			Random a = new Random();
-
-			public void run() {
-				for (int i = 0;; i = a.nextInt(100)) {
-					try {
-						// Sleep process 0.1ms
-						Thread.sleep(100);
-					} catch (InterruptedException e) {
-						// TODO: handle exception
-						e.printStackTrace();
-					}
-					QualityProgressBar.setValue(i); // Set process number
-				}
-			}
-			// Start process
-		}.start();
+		panel1.add(GroudDistanceProgressBar);
 		panel1.add(QualityProgressBar);
-
 		textField_2 = new JTextField();
 		textField_2.setBounds(506, 10, 165, 152);
 		panel1.add(textField_2);
 		textField_2.setColumns(10);
 
+		
 		/**
 		 * panel2 Set combox for port parameters
 		 **/
@@ -153,12 +160,63 @@ public class TestFrame {
 						+ "\nDaud Rate: " + prs.getDataBites()
 						+ "\nStop Bites: " + prs.getStopBites()
 						+ "\nParity Check: " + prs.getParityCheck());
-				/*try {
-					test.testPort();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}*/
+				
+				new Thread() {
+					InputStream is = prs.getInputStream();
+					byte[] buffer = new byte[2048];
+					int numBytes;
+					MavlinkParser mp = new MavlinkParser();
+					byte[] c;
+					ByteArrayTransfer bat = new ByteArrayTransfer();
+					public void run() {
+						//for (int i = 0,j = 0;; /*i = (int) px.getDistance(),j = px.getQuality()*/i ++) {
+						while(true){
+							try {
+								
+								while (is.available() > 0) {
+									numBytes = is.read(buffer);
+									// System.out.println("true");
+									mp.process(buffer);
+									// if(mp.getTargetMassager().length() != 0)
+									System.out.println(Arrays.toString(mp.getTargetMassager()
+											.getBytes()));
+									c = mp.getTargetMassager().getBytes();
+									if(c.length > 0){
+									System.out.println(bat.byteToBaseType("long",0, 8, c));
+									System.out.println(bat.byteToBaseType("int", 8, 9, c));
+									System.out.println(bat.byteToBaseType("int", 9, 11, c));
+									System.out.println(bat.byteToBaseType("int", 11, 13, c));
+									System.out.println(bat.byteToBaseType("float",13, 17, c));
+									System.out.println(bat.byteToBaseType("float",17, 21, c));
+									System.out.println(bat.byteToBaseType("int",21, 22, c));
+									System.out.println(bat.byteToBaseType("float",22, 26, c));
+									GroudDistanceProgressBar.setValue(Integer.parseInt(bat.byteToBaseType("float",22, 26, c).toString().substring(0,1)));
+									QualityProgressBar.setValue(Integer.valueOf(bat.byteToBaseType("int",21, 22, c).toString())); 
+									panel1.add(QualityProgressBar);
+									panel1.add(GroudDistanceProgressBar);
+									Thread.sleep(15);
+									QualityProgressBar.setValue(100); // Set process number
+									GroudDistanceProgressBar.setValue(10);
+									panel1.add(QualityProgressBar);
+									panel1.add(GroudDistanceProgressBar);
+									
+									}
+								}
+								
+								
+							} catch (InterruptedException e) {
+								// TODO: handle exception
+								e.printStackTrace();
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							
+						}
+					}
+					// Start process
+				}.start();
+				
 			}
 		});
 		openPortButton.setBounds(189, 130, 93, 23);
@@ -167,8 +225,18 @@ public class TestFrame {
 		JButton closePortButton = new JButton("Close Port");
 		closePortButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				prs.closePort();
+				new Thread() {
+					public void run() {
+						prs.closePort();
+						QualityProgressBar.setValue(100); // Set process number
+						GroudDistanceProgressBar.setValue(10);
+						panel1.add(QualityProgressBar);
+						panel1.add(GroudDistanceProgressBar);
+					}
+
+				}.start();
 			}
+
 		});
 		closePortButton.setBounds(348, 130, 93, 23);
 		panel2.add(closePortButton);
@@ -293,11 +361,24 @@ public class TestFrame {
 			}
 		});
 
+		
+		//panel3
+		Panel_3 panel3 = new Panel_3();
+		
+		
+		//Split panel panel1 and panel3
+		JSplitPane splitPanel2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+				true, panel1,panel3 );
+		splitPanel2.setBounds(10, 10, 697, 381);
+		// Set location and size of split line
+		splitPanel2.setDividerLocation(0.43);
+		splitPanel2.setDividerSize(1);
+		
 		// To Spite two panels: panel1 and panel2, by vertical method
 		JSplitPane splitPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-				false, panel1, panel2);
+				false, splitPanel2, panel2);
 		splitPanel.setEnabled(false);
-		splitPanel.setBounds(10, 10, 697, 381);
+		splitPanel.setBounds(10, 10, 778, 381);
 		// Set location and size of split line
 		splitPanel.setDividerLocation(0.55);
 		splitPanel.setDividerSize(10);
@@ -306,6 +387,7 @@ public class TestFrame {
 
 	}
 
+	
 	public static void main(String[] args) {
 		new TestFrame();
 	}
