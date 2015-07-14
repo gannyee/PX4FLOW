@@ -66,7 +66,8 @@ public class TestFrame {
 		contePanel.setLayout(null);
 		jf.setContentPane(contePanel);
 
-		
+		//panel3
+		final Panel_3 panel3 = new Panel_3();
 		
 		/**
 		 * panel1
@@ -94,29 +95,6 @@ public class TestFrame {
 		GroudDistanceProgressBar.setBounds(32, 10, 98, 152);
 		GroudDistanceProgressBar.setBackground(Color.BLUE);
 		GroudDistanceProgressBar.setOrientation(1);
-
-		// Create progress
-		/*new Thread() {
-			Random a = new Random();
-
-			public void run() {
-				for (int i = 0;; i = a.nextInt(100)) {
-					try {
-						// Set the process number
-						GroudDistanceProgressBar.setValue(i);
-						// sleep process 0.1ms
-						Thread.sleep(100);
-					} catch (InterruptedException e) {
-						// TODO: handle exception
-						e.printStackTrace();
-					}
-					
-				}
-
-			}
-			// Start process
-		}.start();*/
-		//panel1.add(GroudDistanceProgressBar);
 
 		// Change process bar direction
 		JLabel QualityLabel1 = new JLabel("255");
@@ -151,26 +129,27 @@ public class TestFrame {
 		JPanel panel2 = new JPanel();
 		panel2.setLayout(null);
 
+		
 		// Open Port
 		JButton openPortButton = new JButton("Open Port");
 		openPortButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				prs.openPortAndListen();
-				System.out.println("Port: " + prs.getBaudRate()
-						+ "\nDaud Rate: " + prs.getDataBites()
-						+ "\nStop Bites: " + prs.getStopBites()
-						+ "\nParity Check: " + prs.getParityCheck());
 				
 				new Thread() {
-					InputStream is = prs.getInputStream();
+					InputStream is;
 					byte[] buffer = new byte[2048];
 					int numBytes;
 					MavlinkParser mp = new MavlinkParser();
 					byte[] c;
 					ByteArrayTransfer bat = new ByteArrayTransfer();
 					public void run() {
-						//for (int i = 0,j = 0;; /*i = (int) px.getDistance(),j = px.getQuality()*/i ++) {
+						prs.openPortAndListen();
+						System.out.println("Port: " + prs.getBaudRate()
+								+ "\nDaud Rate: " + prs.getDataBites()
+								+ "\nStop Bites: " + prs.getStopBites()
+								+ "\nParity Check: " + prs.getParityCheck());
 						while(true){
+							is = prs.getInputStream();
 							try {
 								
 								while (is.available() > 0) {
@@ -182,6 +161,7 @@ public class TestFrame {
 											.getBytes()));
 									c = mp.getTargetMassager().getBytes();
 									if(c.length > 0){
+									System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
 									System.out.println(bat.byteToBaseType("long",0, 8, c));
 									System.out.println(bat.byteToBaseType("int", 8, 9, c));
 									System.out.println(bat.byteToBaseType("int", 9, 11, c));
@@ -190,16 +170,25 @@ public class TestFrame {
 									System.out.println(bat.byteToBaseType("float",17, 21, c));
 									System.out.println(bat.byteToBaseType("int",21, 22, c));
 									System.out.println(bat.byteToBaseType("float",22, 26, c));
+									System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
 									GroudDistanceProgressBar.setValue(Integer.parseInt(bat.byteToBaseType("float",22, 26, c).toString().substring(0,1)));
 									QualityProgressBar.setValue(Integer.valueOf(bat.byteToBaseType("int",21, 22, c).toString())); 
 									panel1.add(QualityProgressBar);
 									panel1.add(GroudDistanceProgressBar);
-									Thread.sleep(15);
+									panel1.repaint();
+									panel3.setX(bat.byteToBaseType("int", 9, 11, c), bat.byteToBaseType("float",22, 26, c), bat.byteToBaseType("long",0, 8, c));
+									panel3.setY(bat.byteToBaseType("int", 11, 13, c), bat.byteToBaseType("float",22, 26, c), bat.byteToBaseType("long",0, 8, c));
+									panel3.setXY(bat.byteToBaseType("long",0, 8, c), bat.byteToBaseType("float",13, 17, c), bat.byteToBaseType("float",17, 21, c));
+									Thread.sleep(20);
 									QualityProgressBar.setValue(100); // Set process number
 									GroudDistanceProgressBar.setValue(10);
 									panel1.add(QualityProgressBar);
 									panel1.add(GroudDistanceProgressBar);
-									
+									panel1.repaint();
+									panel3.setX(0, bat.byteToBaseType("float",22, 26, c), bat.byteToBaseType("long",0, 8, c));
+									panel3.setY(0, bat.byteToBaseType("float",22, 26, c), bat.byteToBaseType("long",0, 8, c));
+									//panel3.setXY(bat.byteToBaseType("long",0, 8, c), bat.byteToBaseType("float",13, 17, c), bat.byteToBaseType("float",17, 21, c));
+									Thread.sleep(600);
 									}
 								}
 								
@@ -232,6 +221,7 @@ public class TestFrame {
 						GroudDistanceProgressBar.setValue(10);
 						panel1.add(QualityProgressBar);
 						panel1.add(GroudDistanceProgressBar);
+						panel1.repaint();
 					}
 
 				}.start();
@@ -361,10 +351,6 @@ public class TestFrame {
 			}
 		});
 
-		
-		//panel3
-		Panel_3 panel3 = new Panel_3();
-		
 		
 		//Split panel panel1 and panel3
 		JSplitPane splitPanel2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,

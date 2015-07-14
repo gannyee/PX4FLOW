@@ -1,6 +1,7 @@
 package com.mavlink;
 
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 
 public class MavlinkParser {
 	private static final int STATE_DFLT = 0;
@@ -13,13 +14,13 @@ public class MavlinkParser {
 	private static final int STATE_CKA = 7; 
 	private static final int STATE_CKB = 8; 
 	private static final byte STX_BYTE =  (byte)0XFE;
-	private static final byte TARGET_ID = (byte)100;
+	private static final int TARGET_ID = 100;
 	private int state;
-	private byte massagerLength;
-	private byte massagerID;
+	private int massagerLength;
+	private int massagerID;
 	private String massager;
 	private String targetMassager;
-	private byte targetID;
+	private int targetID;
 	public MavlinkParser(){
 		this.state = STATE_DFLT;
 		this.massagerLength = 0;
@@ -31,8 +32,9 @@ public class MavlinkParser {
 	
 	public void process(byte[] buffer){
 		for(int i = 0;i < buffer.length;i ++ ){
-			if(buffer[i] == STX_BYTE)
+			if(buffer[i] == STX_BYTE){
 				this.state = STATE_STX;
+			}
 			else if(this.state == STATE_STX){
 				this.massagerLength = buffer[i];
 				this.state = STATE_LEN;

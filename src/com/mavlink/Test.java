@@ -55,8 +55,10 @@ public class Test {
 		System.out.println(bat.byteToBaseType("float",21, 22, c));
 		System.out.println(bat.byteToBaseType("float",22, 26, c));*/
 		
-		PX4Flow px = new PX4Flow();
-		px.refresh();
+		/*PX4Flow px = new PX4Flow();
+		while(true)
+			px.refresh();*/
+		
 	}
 	
 }

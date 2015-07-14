@@ -20,14 +20,13 @@ public class Panel_2 extends JPanel {
 	private ComboBoxModel model;
 	private JPanel panel2;
 	private PX4Flow px = new PX4Flow();
-	
 	public Panel_2() {
 		/**
 		 * panel2 Set combox for port parameters
 		 **/
 		panel2 = new JPanel();
 		panel2.setLayout(null);
-
+		
 		// Open Port
 		JButton openPortButton = new JButton("Open Port");
 		openPortButton.addActionListener(new ActionListener() {
@@ -43,8 +42,6 @@ public class Panel_2 extends JPanel {
 
 					public void run() {
 						
-							px.refresh();
-							
 					}
 					// Start process
 				}.start();
