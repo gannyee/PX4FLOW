@@ -19,7 +19,6 @@ import java.util.TooManyListenersException;
 import java.util.Vector;
 
 import com.mavlink.MavlinkParser;
-import com.mavlink.Test;
 
 /**
  * Find usable port Open serial port Read data via opened port
@@ -68,9 +67,6 @@ public class PortReadSerial extends Observable implements Runnable,
 
 	// Open port
 	public void openPortAndListen() {
-		if (isOpen) {
-			closePort();
-		}
 		try {
 			// Get specify port ID number
 			portId = CommPortIdentifier.getPortIdentifier(com);
@@ -120,6 +116,7 @@ public class PortReadSerial extends Observable implements Runnable,
 	// Close port
 	public static void closePort() {
 		if (isOpen) {
+			System.out.println(">>>>>>>>>>>>>>>>>>>>");
 			try {
 				serialPort.notifyOnDataAvailable(false);
 				serialPort.removeEventListener();
@@ -258,30 +255,4 @@ public class PortReadSerial extends Observable implements Runnable,
 		// System.out.println("test");
 		return inputStream;
 	}
-
-	/*public static void main(String[] args) {
-		PortReadSerial prs = new PortReadSerial();
-		prs.openPortAndListen();
-		int numBytes;
-		MavlinkParser mp = new MavlinkParser();
-		byte[] buffer = new byte[2048];
-		while (true) {
-			InputStream is = prs.getInputStream();
-			try {
-				while (is.available() > 0) {
-					numBytes = is.read(buffer);
-					//System.out.println("true");
-					mp.process(buffer);
-					//if(mp.getTargetMassager().length() != 0)
-						System.out.println(Arrays.toString(mp.getTargetMassager().getBytes()));
-				}
-				//System.out.println(Arrays.toString(buffer));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		// System.out.println(Arrays.toString(prs.getReadBuffer())); }
-
-	}*/
 }

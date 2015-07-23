@@ -34,14 +34,18 @@ public class Panel_3 extends Canvas{
 	private int v_y = 0;
 	private Image iBuffer;
 	private int count = -1;
-	private long timeSecPrev;
+	private double timeSecPrev = 0;
 	private double elapsedSec;
-	private int X_accum = 0;
-	private int Y_accum = 0;
+	private double X_accum = 0.0;
+	private double Y_accum = 0.0;
 	private Vector<Point> points = new Vector<Point>();
-
+	private int updates = 0;
+	private long  elapsed_sec;
+	private float lineWidth = 0.2f;
+	private float lineWidth1 = 2.2f;
 	public Panel_3(){
 		points.add(new Point((int) (XAxis_X -75 + PARALLAR_MOVE), Origin_Y + 5));
+		originTime = System.currentTimeMillis() / 100;
 	}
 	
 	public void paint(Graphics g) {
@@ -86,20 +90,17 @@ public class Panel_3 extends Canvas{
 		g.drawString("Y(m)", XAxis_X + 5 + PARALLAR_MOVE, XAxis_Y + 5);
 		g.drawString("X(m)", XAxis_X + 5 - 95 + PARALLAR_MOVE, XAxis_Y + 5 + 85);
 		
-		
+	    ((Graphics2D)g).setStroke(new BasicStroke(lineWidth));
 		g.setColor(new Color(255, 0, 0));
-		//g.drawOval(XAxis_X -80 + PARALLAR_MOVE, Origin_Y, 10, 10);
-		
-		//g.drawOval((int) (XAxis_X -80 + (this.X_accum / 10) * 100+ PARALLAR_MOVE), Origin_Y, 10, 10);
 		Point p1, p2;
 		for (int i = 1; i < points.size(); i++) {
 			p1 = points.get(i - 1);
 			p2 = points.get(i);
 			//g.drawOval(p2.x, p2.y, 10, 10);
-			g.drawLine(p1.x, p1.y, p2.x, p2.y);
+			g.drawLine(p1.x , p1.y, p2.x, p2.y);
 		}
 		
-		
+		((Graphics2D)g).setStroke(new BasicStroke(lineWidth1));
 		if(this.v_x < 0)
 			g.setColor(new Color(255, 0, 0));
 		else 
@@ -110,51 +111,22 @@ public class Panel_3 extends Canvas{
 		else 
 			g.setColor(new Color(0, 255, 0));
 		g.drawLine(Origin_X + 75, Origin_Y,Origin_X + 75,Origin_Y + this.v_y );
-		/*Point p1, p2;
-		for (int i = 1; i < points.size(); i++) {
-			p1 = points.get(i - 1);
-			p2 = points.get(i);
-			g.drawLine(p1.x, p1.y, p2.x, p2.y);
-		}*/
-		
-		count ++;
-		originTime = System.currentTimeMillis();
-		
-		
-		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-		System.out.println(count);
-		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 	}
 	
-	public void setX(Object x, Object distance,Object time) {
-		// Display params (Width, Height, X, Y, Radius, Distance)
-		
-		//time = ((Long.valueOf(time.toString()) / 1000000) - originTime) ;
+	//Set X Y direction flow velocity
+	public void setX_Y(Object x,Object y, Object distance) {
+		float comp_x = (float) 0.0;
+		float comp_y = (float) 0.0;
 		if(Float.valueOf(distance.toString()) > 0){
-			
-			this.v_x = (int) (Integer.valueOf(x.toString().substring(0,1)) / 5.0 * 100);
-			System.out.println("---------------------------------");
-			System.out.println("X: " + this.v_x);
-			System.out.println("---------------------------------");
+			comp_x =  (Float.valueOf(x.toString()) * 30 ) ;  //'35' mean the length of axis
+			comp_y =  (Float.valueOf(y.toString()) * 30) ;
+			this.v_x = (int) comp_x;
+			this.v_y = (int) comp_y;
 		}else{
             this.failcount += 1;
             System.out.println("Fail: " + this.failcount);
 		}
-		repaint();
-	}
 		
-	public void setY(Object y, Object distance,Object time) {
-		// Display params (Width, Height, X, Y, Radius, Distance)
-		//time = Long.valueOf(time.toString()) / 1000000 - originTime;
-		if(Float.valueOf(distance.toString()) > 0){
-			this.v_y = (int) (Integer.valueOf(y.toString().substring(0,1)) / 5.0 * 100);
-			System.out.println("---------------------------------");
-			System.out.println("Y: " + this.v_y);
-			System.out.println("---------------------------------");
-		}else{
-            this.failcount += 1;
-            System.out.println("Fail: " + this.failcount);
-		}
 		repaint();
 	}
 	
@@ -173,38 +145,29 @@ public class Panel_3 extends Canvas{
         g.drawImage(iBuffer, 0, 0, this);  
     }
     
+    //Set device movements situation
     public void setXY(Object time,Object compX,Object compY){
     	
-    	long timeSec = (long) (Long.valueOf(time.toString()) / 1e6);
-    	
-    	if(this.count > 0){
-    		if(this.timeSecPrev > 0){
-    			this.elapsedSec = (timeSec - this.timeSecPrev) / 1000000000000.0;
+    	double timeSec =  (Long.valueOf(time.toString()) / 1e6);
+    	if(this.count != 0){
+    		if(this.timeSecPrev != 0){
+    			this.elapsedSec = (timeSec - this.timeSecPrev);
     			
     			if(this.elapsedSec < 0.1){
-    				this.X_accum += (Float.valueOf(compX.toString()) * this.elapsedSec) / 100000000;
-    				this.Y_accum += (Float.valueOf(compY.toString()) * this.elapsedSec) / 100000000;
-    				this.timeSecPrev = timeSec;
-    				
-    				System.out.println("******************************");
-    				System.out.println("X_accum: " + this.X_accum);
-    				System.out.println("Y_accum: " + this.Y_accum);
-    				System.out.println("timeSecPrev: " + this.timeSecPrev);
-    				System.out.println("******************************");
+    				this.X_accum += (Float.valueOf(compX.toString()) * this.elapsedSec) ;
+    				this.Y_accum += (Float.valueOf(compY.toString()) * this.elapsedSec) ;
     			}
+    			this.timeSecPrev = timeSec;
     		}
-    		this.timeSecPrev = timeSec;
     	}
-    	Point prev = points.get(points.size() - 1);
-		Point point = new Point(new Point((int) (XAxis_X -75 + PARALLAR_MOVE) + this.X_accum, Origin_Y + 5 + + this.X_accum));
+    	
+    	this.count += 1;
+		this.timeSecPrev = timeSec;
+		Point pre = new Point();
+		Point point = new Point();
+		if(pre.x != (int) (XAxis_X -75 + PARALLAR_MOVE + (this.X_accum / 10  * 100)) && pre.y != (int) (Origin_Y + 5 +  (this.Y_accum / 10  * 100)))
+			point = new Point((int) (XAxis_X -75 + PARALLAR_MOVE + (this.X_accum / 30  * 100)), (int) (Origin_Y + 5 +  (this.Y_accum / 30  * 100)));
 		points.add(point);
-		System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-		System.out.println("X_accum: " + this.X_accum);
-		System.out.println("Y_accum: " + this.Y_accum);
-		System.out.println("compX: " + Float.valueOf(compX.toString()));
-		System.out.println("compY: " + Float.valueOf(compY.toString()));
-		System.out.println( "elapsedSec: " +  this.elapsedSec);
-		System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
     	repaint();
     }
 }

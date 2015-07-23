@@ -4,19 +4,10 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-
 import com.mavlink.ByteArrayTransfer;
 import com.mavlink.MavlinkParser;
 import com.mavlink.PX4Flow;
-import com.mavlink.Test;
 import com.rxtx.PortReadSerial;
-/**
- * Set main windows for application
- * 
- * @author Yi Gan
- * 
- */
-
 import gnu.io.SerialPort;
 import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
@@ -25,8 +16,6 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JLabel;
 import javax.swing.JComboBox;
-
-import com.mavlink.Test;
 import com.rxtx.PortReadSerial;
 import java.awt.Color;
 import java.awt.event.ActionListener;
@@ -46,15 +35,13 @@ import java.io.InputStream;
  * @author Yi Gan
  * 
  */
-public class TestFrame {
+public class TestFrame extends PX4Flow{
 	private static final int WIDTH = 300;
 	private static final int HEIGHT = 200;
 	private static JPanel contePanel;
 	private PortReadSerial prs = new PortReadSerial();
 	private ComboBoxModel model;
 	private JTextField textField_2;
-	//private PX4Flow px = new PX4Flow();
-	// TestFrame Constructor
 	public TestFrame() {
 
 		JFrame jf = new JFrame();
@@ -90,8 +77,7 @@ public class TestFrame {
 		panel1.add(GrndDistLabel);
 
 		final JProgressBar GroudDistanceProgressBar = new ProgressBar(180);
-		GroudDistanceProgressBar.setValue(10);
-		GroudDistanceProgressBar.setMaximum(10);
+		GroudDistanceProgressBar.setValue(100);
 		GroudDistanceProgressBar.setBounds(32, 10, 98, 152);
 		GroudDistanceProgressBar.setBackground(Color.BLUE);
 		GroudDistanceProgressBar.setOrientation(1);
@@ -140,68 +126,50 @@ public class TestFrame {
 					byte[] buffer = new byte[2048];
 					int numBytes;
 					MavlinkParser mp = new MavlinkParser();
-					byte[] c;
 					ByteArrayTransfer bat = new ByteArrayTransfer();
 					public void run() {
-						prs.openPortAndListen();
 						System.out.println("Port: " + prs.getBaudRate()
 								+ "\nDaud Rate: " + prs.getDataBites()
 								+ "\nStop Bites: " + prs.getStopBites()
 								+ "\nParity Check: " + prs.getParityCheck());
+						openPortAndListen();
 						while(true){
-							is = prs.getInputStream();
-							try {
-								
-								while (is.available() > 0) {
-									numBytes = is.read(buffer);
-									// System.out.println("true");
-									mp.process(buffer);
-									// if(mp.getTargetMassager().length() != 0)
-									System.out.println(Arrays.toString(mp.getTargetMassager()
-											.getBytes()));
-									c = mp.getTargetMassager().getBytes();
-									if(c.length > 0){
-									System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
-									System.out.println(bat.byteToBaseType("long",0, 8, c));
-									System.out.println(bat.byteToBaseType("int", 8, 9, c));
-									System.out.println(bat.byteToBaseType("int", 9, 11, c));
-									System.out.println(bat.byteToBaseType("int", 11, 13, c));
-									System.out.println(bat.byteToBaseType("float",13, 17, c));
-									System.out.println(bat.byteToBaseType("float",17, 21, c));
-									System.out.println(bat.byteToBaseType("int",21, 22, c));
-									System.out.println(bat.byteToBaseType("float",22, 26, c));
-									System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
-									GroudDistanceProgressBar.setValue(Integer.parseInt(bat.byteToBaseType("float",22, 26, c).toString().substring(0,1)));
-									QualityProgressBar.setValue(Integer.valueOf(bat.byteToBaseType("int",21, 22, c).toString())); 
-									panel1.add(QualityProgressBar);
-									panel1.add(GroudDistanceProgressBar);
-									panel1.repaint();
-									panel3.setX(bat.byteToBaseType("int", 9, 11, c), bat.byteToBaseType("float",22, 26, c), bat.byteToBaseType("long",0, 8, c));
-									panel3.setY(bat.byteToBaseType("int", 11, 13, c), bat.byteToBaseType("float",22, 26, c), bat.byteToBaseType("long",0, 8, c));
-									panel3.setXY(bat.byteToBaseType("long",0, 8, c), bat.byteToBaseType("float",13, 17, c), bat.byteToBaseType("float",17, 21, c));
-									Thread.sleep(20);
-									QualityProgressBar.setValue(100); // Set process number
-									GroudDistanceProgressBar.setValue(10);
-									panel1.add(QualityProgressBar);
-									panel1.add(GroudDistanceProgressBar);
-									panel1.repaint();
-									panel3.setX(0, bat.byteToBaseType("float",22, 26, c), bat.byteToBaseType("long",0, 8, c));
-									panel3.setY(0, bat.byteToBaseType("float",22, 26, c), bat.byteToBaseType("long",0, 8, c));
-									//panel3.setXY(bat.byteToBaseType("long",0, 8, c), bat.byteToBaseType("float",13, 17, c), bat.byteToBaseType("float",17, 21, c));
-									Thread.sleep(600);
-									}
-								}
-								
-								
-							} catch (InterruptedException e) {
-								// TODO: handle exception
-								e.printStackTrace();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+						try {
+							while(getInputStream().read(buffer) > 0){
+								process(buffer);
+							//	System.out.println("Messager: " + getTargetMassager());
+							for(int i = 0;i < getTargetMassager().size();i ++){
+//							System.out.println("Messager: " + getTargetMassager().get(i));
+//							System.out.println("1: " + byteToBaseType("long",0,8, getTargetMassager().get(i)));
+//							System.out.println("2: " + byteToBaseType("int",24,24, getTargetMassager().get(i)));
+//							System.out.println("3: " + byteToBaseType("int",20,22,getTargetMassager().get(i)));
+//							System.out.println("4: " + byteToBaseType("int",22,24,getTargetMassager().get(i)));
+//							System.out.println("5: " + byteToBaseType("float",8,12,getTargetMassager().get(i)));
+//							System.out.println("6: " + byteToBaseType("float",12,16,getTargetMassager().get(i)));
+//							System.out.println("7: " + byteToBaseType("int",25,25,getTargetMassager().get(i)));
+//							System.out.println("8: " + byteToBaseType("float",16,20,getTargetMassager().get(i)));
+							GroudDistanceProgressBar.setValue(getDistance(byteToBaseType("float",16,20,getTargetMassager().get(i))));
+							QualityProgressBar.setValue(getQuality(byteToBaseType("int",25,25,getTargetMassager().get(i)))); 
+							panel1.add(QualityProgressBar);
+							panel1.add(GroudDistanceProgressBar);
+							panel1.repaint();
+							panel3.setXY(byteToBaseType("long",0, 8, getTargetMassager().get(i)), byteToBaseType("float",8, 12, getTargetMassager().get(i)),byteToBaseType("float",12, 16, getTargetMassager().get(i)));
+							panel3.setX_Y(byteToBaseType("float", 8, 12, getTargetMassager().get(i)), byteToBaseType("float",12, 16, getTargetMassager().get(i)),  byteToBaseType("float",16,20,getTargetMassager().get(i)));
+							Thread.sleep(10);
 							}
-							
+							}
+						} catch (NumberFormatException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
+						
+					}
 					}
 					// Start process
 				}.start();
@@ -216,9 +184,9 @@ public class TestFrame {
 			public void actionPerformed(ActionEvent e) {
 				new Thread() {
 					public void run() {
-						prs.closePort();
+						closePort();
 						QualityProgressBar.setValue(100); // Set process number
-						GroudDistanceProgressBar.setValue(10);
+						GroudDistanceProgressBar.setValue(100);
 						panel1.add(QualityProgressBar);
 						panel1.add(GroudDistanceProgressBar);
 						panel1.repaint();
