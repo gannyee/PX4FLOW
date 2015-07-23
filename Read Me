@@ -1,0 +1,23 @@
+'''
+PX4Flow - a java class for collecting data from the PX4Flow sensor
+
+Copyright (C) 2015 Yi Gan
+
+This code is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as 
+published by the Free Software Foundation, either version 3 of the 
+License, or (at your option) any later version.
+
+This code is distributed in the hope that it will be useful,     
+but WITHOUT ANY WARRANTY without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License 
+along with this code.  If not, see <http://www.gnu.org/licenses/>.
+'''
+1> This is a project about serial programming, on PX4Flow aspect. The project is in java version reference to pyhton version.
+2> If you interested in my project, it's free to download it and then add your idea.
+3> After you read my papaer, if there is something wrong, just tell me, I'm very happy to accept your advise, then I will do 
+   some modify, my email is ganyiwelldone@gmail.com.
+
