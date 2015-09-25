@@ -1,5 +1,5 @@
 # PX4FLOW
-This is about some code and brief introduction of a project of mine when I study in Genmany.
+This is about some code and brief introduction of a project of mine when I study in Germany.
 The Project deal with issues related to the PX4FLOW Smart Camera.This devices is an optical
 flow sensor which can replace GPS indoor application and permits robuts velocity and position 
 information. The PX4FLOW module output data packets via USB on the basis of propriety MAVLINK 
